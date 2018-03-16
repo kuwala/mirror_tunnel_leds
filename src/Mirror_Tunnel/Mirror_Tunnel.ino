@@ -1,4 +1,5 @@
 #include <Adafruit_NeoPixel.h>
+#include "FastLED.h"
 // Set teensy to usbMIDI
 
 // PINS on the octo28_adaptor
@@ -6,8 +7,12 @@
 #define PIN 2
 #define NUM_PIXELS 120
 #define SEGMENT_LEN 3
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_RGBW + NEO_KHZ800);
+// Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_RGBW + NEO_KHZ800);
 
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_RGBW + NEO_KHZ800);
+CRGB fleds[NUM_PIXELS];
+uint8_t brightness = 255;
+uint8_t testHue = 0;
 
 void setup() {
 
@@ -15,16 +20,30 @@ void setup() {
   usbMIDI.setHandleNoteOn(OnNoteOn);
   usbMIDI.setHandleNoteOff(OnNoteOff);
   usbMIDI.setHandleControlChange(OnControlChange);
+  for (size_t i = 0; i < NUM_PIXELS; i++) {
+    fleds[i] = CHSV(62,255,brightness);
+    /* code */
+  }
 
-//  strip.begin();
-//  strip.show(); // Initialize all pixels to 'off'
-//  usbMIDI.setHandleNoteOn(OnNoteOn);
-//  usbMIDI.setHandleNoteOff(OnNoteOff);
+  strip.begin();
+  strip.show(); // Initialize all pixels to 'off'
   pinMode(13,OUTPUT);
-//  testTest();
+  testTest();
 }
+void rotateHue() {
+  testHue = (testHue + 1 ) % 256;
+  fleds[0] = CHSV(testHue, 255, brightness);
+}
+
+
+void putOnStrip() {
+  int i = 0;
+  strip.setPixelColor(i, strip.Color(fleds[i].r,fleds[i].g,fleds[i].b));
+  strip.show();
+}
+
 void OnControlChange(byte c, byte n, byte v) {
-  
+
 }
 int mapNoteToPos(byte n) {
   int numLeds = NUM_PIXELS;
@@ -50,21 +69,34 @@ void OnNoteOff (byte c, byte n, byte v) {
 }
 
 void loop() {
-  strip.show();
+  // strip.show();
   usbMIDI.read();
   //delay(5);
+
+  rotateHue();
+  putOnStrip();
+  int state = 0;
+
+
+  if(state == 0) {
+    //autoLights state
+
+  } else if(state = 1) {
+    //midiPlay state
+  }
 
 }
 
 void testTest() {
-  for (size_t i = 60; i < 80; i++) {
+  for (size_t i = 40; i > 0; i--) {
   clearStrip();
   uint32_t color = strip.Color(i,255,0);
-  int pos = mapNoteToPos(i);
+  //int pos = mapNoteToPos(i);
   segmentTest(i, color);
   strip.show();
   // delay(100);
   }
+  clearStrip();
 }
 
 void clearStrip() {
@@ -84,10 +116,17 @@ void segmentTest(int pos, uint32_t color) {
   // Make sure new position is in range
   if ( (strip.numPixels() - (pos + len) ) > 0 ) {
 
+    Serial.print("segment pos : ");
+    Serial.println(pos);
+
     for (size_t i = 0; i < len; i++) {
       int index = pos + i;
       strip.setPixelColor(index, color);
     }
+    strip.show();
+  } else {
+    Serial.print("segment pos out of rangei: ");
+    Serial.println(pos);
   }
 
 }

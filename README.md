@@ -13,10 +13,13 @@ random colors moving around on the strips.
 
 Running Adafruit StrandTest Working on the Teensy.
 
+## Todo
+
 ## Things to find Out
 how many Strips
-how many leds per strip
-estimated power usage
+how many leds per strip 300
+estimated power usage 18W per Meter 18Amps per 5meter strip
+
 teensy usbback power cut??
 
 ## Ideas for Experimentation
