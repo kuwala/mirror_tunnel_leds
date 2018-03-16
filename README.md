@@ -12,3 +12,18 @@ Library. The previous code on there was running in RGB mode and so it just had
 random colors moving around on the strips.
 
 Running Adafruit StrandTest Working on the Teensy.
+
+## Things to find Out
+how many Strips
+how many leds per strip
+estimated power usage
+teensy usbback power cut??
+
+## Ideas for Experimentation
+
+There are 16 midi channels
+each can send a lot of data
+note data and CC data.
+
+we can map CC data to control parameters of segmens on the Strips
+Things like Position, Color ( R G B ),
