@@ -1,18 +1,30 @@
 #include <Adafruit_NeoPixel.h>
 #include "FastLED.h"
+#include "PatternPulse.h"
 // Set teensy to usbMIDI
 
 // PINS on the octo28_adaptor
 // 2 14 7 8 6 20 21 5
 #define PIN 2
-#define NUM_PIXELS 120
+#define NUM_PIXELS 300
 #define SEGMENT_LEN 3
 // Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_RGBW + NEO_KHZ800);
 
+// LED Parts
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_RGBW + NEO_KHZ800);
+// Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_RGBW + NEO_KHZ800);
 CRGB fleds[NUM_PIXELS];
 uint8_t brightness = 255;
 uint8_t testHue = 0;
+
+PatternPulse patternPulse = PatternPulse(fleds, NUM_PIXELS);
+
+// Timer for changing patterns :()
+unsigned long timer = 0;
+int timeStep = 2000; // 2secs
+
+// Overal State     0 autoLights,  1 midiInputs
+int state = 0;
 
 void setup() {
 
@@ -22,7 +34,6 @@ void setup() {
   usbMIDI.setHandleControlChange(OnControlChange);
   for (size_t i = 0; i < NUM_PIXELS; i++) {
     fleds[i] = CHSV(62,255,brightness);
-    /* code */
   }
 
   strip.begin();
@@ -30,30 +41,52 @@ void setup() {
   pinMode(13,OUTPUT);
   testTest();
 }
+
+
 void rotateHue() {
   testHue = (testHue + 1 ) % 256;
   fleds[0] = CHSV(testHue, 255, brightness);
 }
 
 
+void hueOnLight() {
+  int i = 0;
+  strip.setPixelColor(i, strip.Color(fleds[i].g,fleds[i].r,fleds[i].b));
+  // strip.show();
+}
 void putOnStrip() {
   int i = 0;
-  strip.setPixelColor(i, strip.Color(fleds[i].r,fleds[i].g,fleds[i].b));
+  for (size_t i = 0; i < NUM_PIXELS; i++) {
+    strip.setPixelColor(i, strip.Color(fleds[i].r,fleds[i].g,fleds[i].b));
+  }
   strip.show();
+
 }
 
 void OnControlChange(byte c, byte n, byte v) {
 
 }
 int mapNoteToPos(byte n) {
-  int numLeds = NUM_PIXELS;
+  // int numLeds = NUM_PIXELS;
   int note = n;
   // midi note range 0 - 255;
   // led pixel range 120 (for now)
   int maped = map(note, 0, 255, 0, NUM_PIXELS / SEGMENT_LEN) * SEGMENT_LEN;
   return maped;
 }
+
 void OnNoteOn (byte c, byte n, byte v) {
+  patternPulse.setHue((int)random(256));
+  patternPulse.setBright();
+  // map midi notes 0 - 3 to change states 0 - 3
+  if (n < 4) {
+    if (n==0) {
+      state = 0;
+    } else if (n == 1) {
+      state = 1;
+    }
+  }
+
   int color = strip.Color(0,255,0);
   int pos = mapNoteToPos(n);
   Serial.print("Mapped Note to Pos: ");
@@ -73,17 +106,27 @@ void loop() {
   usbMIDI.read();
   //delay(5);
 
-  rotateHue();
-  putOnStrip();
+
   int state = 0;
 
+  if (millis() - timer > timeStep) {
+    //change pattern
+    timer = millis();
+  }
 
   if(state == 0) {
     //autoLights state
+    patternPulse.update();
 
-  } else if(state = 1) {
+  } else if(state == 1) {
     //midiPlay state
   }
+
+  // rotateHue();
+  // hueOnLight();
+
+  // Put the CRGB FASTLED leds onto the neopixel strip and show it
+  putOnStrip();
 
 }
 
@@ -110,7 +153,7 @@ void clearStrip() {
 
 void segmentTest(int pos, uint32_t color) {
   // map note to a position
-  int len = 3;
+  uint32_t len = 3;
   // int color = strip.Color((pos * 4)% 256, (pos * 8) % 256, (pos* 2) % 256);
 
   // Make sure new position is in range
