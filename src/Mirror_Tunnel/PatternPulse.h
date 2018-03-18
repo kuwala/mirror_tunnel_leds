@@ -8,15 +8,17 @@ class PatternPulse {
     PatternPulse(CRGB* leds_, int numLeds_);
     void draw();
     void update();
+    void sanityCheck();
+    void draw2();
     void dim();
     void setBright();
     void setHue(int hue_);
 
   private:
-    uint8_t hue;
-    uint8_t brightness;
-    uint8_t minBrightness;
-    uint8_t maxBrightness;
+    int hue;
+    int brightness;
+    int minBrightness;
+    int maxBrightness;
 
     int numLeds;
     CRGB* leds;

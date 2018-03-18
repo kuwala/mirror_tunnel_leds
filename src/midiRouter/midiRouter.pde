@@ -8,15 +8,22 @@ int xx = 0;
 int yy = 0;
 
 void setup() {
-  
   MidiBus.list();
-  
   // Patch midi in from op-1 
   // to midi out to teensy
   // use -1 for no input/output
   myBus = new MidiBus(this, 1, 3);
+  // Change LED strip State
+  myBus.sendNoteOff(0, 2, 127);
   
 }
+void draw() {
+  background(0,0,0,0.01);
+  fill(random(255));
+  rect(xx*10,yy*10,10,10); 
+  //randomMidi();
+}
+
 void randomMidi() {
   
   int channel = 0;
@@ -35,14 +42,6 @@ void randomMidi() {
   delay(delayBetweenNotes);
 }
 
-void draw() {
-  background(0,0,0,0.01);
-  fill(random(255));
-  
- rect(xx*10,yy*10,10,10); 
- //randomMidi();
- 
-}
 
 void noteOn(int channel, int pitch, int velocity) {
   print("Routing note !!");
@@ -63,11 +62,36 @@ void noteOff(int channel, int pitch, int velocity) {
   myBus.sendNoteOff(channel, pitch, velocity);
   
 }
+void keyPressed() {
+  if(key == '1') {
+     noteOn(0,0, 127);
+   noteOff(0,0, 127);
+  } else if (key == '2' ) {
+     noteOn(0,1, 127);
+   noteOff(0,1, 127);
+  } else if (key == '3' ) {
+     noteOn(0,2, 127);
+   noteOff(0,2, 127);
+  }
+  
+  if(key == ' ') {
+   int note = 4 +(int)random(250);
+   noteOn(0,note, 127);
+   //delay(5);
+   noteOff(0,note, 127);
+  }
+  
+}
 void mousePressed() {
+ 
+
   int note = 62 +(int)random(12);
  noteOn(0,note, 127);
  delay(5);
  noteOff(0,note, 127);
  //randomMidi();
+ // map mouse x to cc
+ //int cc = map(mouseX, 0, 100, 0, 127);
+ 
 
 }

@@ -5,19 +5,33 @@
 
 // PINS on the octo28_adaptor
 // 2 14 7 8 6 20 21 5
-#define PIN 2
-#define NUM_PIXELS 300
+#define PIN 7
+#define PIN2 2
+#define PIN3 21
+#define PIN4 5
+// about 55 Leds per Mirro Tunnel Segment
+#define NUM_PIXELS 110
+#define NUM_PIXELS2 110
+#define NUM_PIXELS3 110
+#define NUM_PIXELS4 110
 #define SEGMENT_LEN 3
 // Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_RGBW + NEO_KHZ800);
 
 // LED Parts
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_RGBW + NEO_KHZ800);
-// Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_RGBW + NEO_KHZ800);
+Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(NUM_PIXELS2, PIN2, NEO_RGBW + NEO_KHZ800);
+Adafruit_NeoPixel strip3 = Adafruit_NeoPixel(NUM_PIXELS3, PIN3, NEO_RGBW + NEO_KHZ800);
+Adafruit_NeoPixel strip4 = Adafruit_NeoPixel(NUM_PIXELS4, PIN4, NEO_RGBW + NEO_KHZ800);
+
 CRGB fleds[NUM_PIXELS];
-uint8_t brightness = 255;
+CRGB fleds2[NUM_PIXELS];
+uint8_t brightness = 64;
 uint8_t testHue = 0;
+uint32_t hueDrift = 0;
 
 PatternPulse patternPulse = PatternPulse(fleds, NUM_PIXELS);
+PatternPulse patternPulse2 = PatternPulse(fleds2, NUM_PIXELS);
+
 
 // Timer for changing patterns :()
 unsigned long timer = 0;
@@ -32,16 +46,47 @@ void setup() {
   usbMIDI.setHandleNoteOn(OnNoteOn);
   usbMIDI.setHandleNoteOff(OnNoteOff);
   usbMIDI.setHandleControlChange(OnControlChange);
+
+  CHSV color = CHSV(0,255,brightness);
   for (size_t i = 0; i < NUM_PIXELS; i++) {
-    fleds[i] = CHSV(62,255,brightness);
+    fleds[i] = color;
+    fleds2[i] = color;
   }
 
   strip.begin();
+  strip2.begin();
+  strip3.begin();
+  strip4.begin();
   strip.show(); // Initialize all pixels to 'off'
+  strip2.show(); // Initialize all pixels to 'off'
+  strip3.show(); // Initialize all pixels to 'off'
+  strip4.show(); // Initialize all pixels to 'off'
   pinMode(13,OUTPUT);
   testTest();
 }
 
+void loop() {
+  // strip.show();
+  if (state == 0) {
+    patternPulse.sanityCheck();
+    patternPulse2.sanityCheck();
+  } else if (state == 1) {
+
+
+  } else if (state == 2) {
+    // rainbow
+    hueDrift += 1;
+    int hue = hueDrift;
+    for (size_t i = 0; i < NUM_PIXELS; i++) {
+      hue = (hue + 1 ) % 256;
+      fleds[i] = CHSV(hue,255,brightness);
+    }
+  }
+  usbMIDI.read();
+  //delay(5);
+  putOnStrip();
+  putOnStrip2();
+}
 
 void rotateHue() {
   testHue = (testHue + 1 ) % 256;
@@ -55,12 +100,20 @@ void hueOnLight() {
   // strip.show();
 }
 void putOnStrip() {
-  int i = 0;
   for (size_t i = 0; i < NUM_PIXELS; i++) {
-    strip.setPixelColor(i, strip.Color(fleds[i].r,fleds[i].g,fleds[i].b));
+    strip.setPixelColor(i, strip.Color(fleds[i].g,fleds[i].r,fleds[i].b));
   }
   strip.show();
-
+}
+void putOnStrip2() {
+  for (size_t i = 0; i < NUM_PIXELS; i++) {
+    strip2.setPixelColor(i, strip2.Color(fleds2[i].g,fleds2[i].r,fleds2[i].b));
+    strip3.setPixelColor(i, strip2.Color(fleds2[i].g,fleds2[i].r,fleds2[i].b));
+    strip4.setPixelColor(i, strip2.Color(fleds2[i].g,fleds2[i].r,fleds2[i].b));
+  }
+  strip2.show();
+  strip3.show();
+  strip4.show();
 }
 
 void OnControlChange(byte c, byte n, byte v) {
@@ -75,60 +128,61 @@ int mapNoteToPos(byte n) {
   return maped;
 }
 
-void OnNoteOn (byte c, byte n, byte v) {
-  patternPulse.setHue((int)random(256));
-  patternPulse.setBright();
+
+void OnNoteOn (byte channel, byte n, byte v) {
   // map midi notes 0 - 3 to change states 0 - 3
   if (n < 4) {
     if (n==0) {
       state = 0;
     } else if (n == 1) {
       state = 1;
+    } else if (n == 2) {
+      state = 2;
     }
   }
 
-  int color = strip.Color(0,255,0);
-  int pos = mapNoteToPos(n);
-  Serial.print("Mapped Note to Pos: ");
-  Serial.println(pos);
-  segmentTest(pos, color);
+  if(channel == 0) {
+
+
+    if (state == 0) {
+      patternPulse.setHue((int)random(256));
+      patternPulse.setBright();
+      patternPulse2.setHue((int)random(256));
+      patternPulse2.setBright();
+      // pulse whole strip
+
+    } else if (state == 1) {
+      // move midi note around
+      int color = strip.Color(0,255,0);
+      int pos = mapNoteToPos(n);
+      Serial.print("Mapped Note to Pos: ");
+      Serial.println(pos);
+      segmentTest(pos, color);
+
+    }
+
+  } else if (channel == 1) {
+
+  }
+
+
   digitalWrite(13,HIGH);
 }
 void OnNoteOff (byte c, byte n, byte v) {
-  int color = strip.Color(0,0,0);
-  int pos = mapNoteToPos(n);
-  segmentTest(pos, color);
+  if (state == 0) {
+    patternPulse2.setHue((int)random(256));
+    patternPulse2.setBright();
+    patternPulse.setHue((int)random(256));
+    patternPulse.setBright();
+  } else if (state == 1) {
+    // turn off midi note
+    int color = strip.Color(0,0,0);
+    int pos = mapNoteToPos(n);
+    segmentTest(pos, color);
+  }
   digitalWrite(13,LOW);
 }
 
-void loop() {
-  // strip.show();
-  usbMIDI.read();
-  //delay(5);
-
-
-  int state = 0;
-
-  if (millis() - timer > timeStep) {
-    //change pattern
-    timer = millis();
-  }
-
-  if(state == 0) {
-    //autoLights state
-    patternPulse.update();
-
-  } else if(state == 1) {
-    //midiPlay state
-  }
-
-  // rotateHue();
-  // hueOnLight();
-
-  // Put the CRGB FASTLED leds onto the neopixel strip and show it
-  putOnStrip();
-
-}
 
 void testTest() {
   for (size_t i = 40; i > 0; i--) {
@@ -144,13 +198,37 @@ void testTest() {
 
 void clearStrip() {
   // set all LEDS to off (Black)
-  uint32_t color = strip.Color(0,0,0);
   for (uint16_t i = 0; i < strip.numPixels(); i++) {
-    /* code */
-    strip.setPixelColor(i, color);
+    // strip.setPixelColor(i, color);
+    fleds[i] = CRGB::Black;
+  }
+}
+void fadeStripBy(int by) {
+  for (size_t i = 0; i < NUM_PIXELS; i++) {
+    fleds[i].fadeLightBy(by);
   }
 }
 
+void setSegment(int pos, CHSV color) {
+  // draw a segment on a strip
+  uint32_t len = 3;
+  // Make sure new position is in range
+  if ( (strip.numPixels() - (pos + len) ) > 0 ) {
+
+    Serial.print("segment pos : ");
+    Serial.println(pos);
+
+    for (size_t i = 0; i < len; i++) {
+      int index = pos + i;
+      fleds[i]=color;
+      // strip.setPixelColor(index, color);
+    }
+    putOnStrip();
+  } else {
+    Serial.print("segment pos out of rangei: ");
+    Serial.println(pos);
+  }
+}
 void segmentTest(int pos, uint32_t color) {
   // map note to a position
   uint32_t len = 3;
@@ -171,18 +249,11 @@ void segmentTest(int pos, uint32_t color) {
     Serial.print("segment pos out of rangei: ");
     Serial.println(pos);
   }
-
 }
 
-// Explorations and Ideas
-// midiMap
-/*
-I want LED segments to move around
 
 
-*/
-
-// NeoPixel Examples
+// * * * * *  * * * * * * *  NeoPixel Examples * * * *  *
 // Fill the dots one after the other with a color
 void colorWipe(uint32_t c, uint8_t wait) {
   for(uint16_t i=0; i<strip.numPixels(); i++) {
