@@ -16,22 +16,9 @@ void PatternPulse::dim() {
   if (brightness < 0 ){
     brightness = 0;
   }
-  Serial.print("brightness set too: ");
-  Serial.println(brightness);
   color = CHSV(hue, 255, brightness);
 }
-void PatternPulse::sanityCheck() {
-  Serial.println("sanitycheck called");
-  dim();
-  // draw();
-  // brightness -= 1;
-  // if (brightness < minBrightness) {
-  //   brightness = minBrightness;
-  // }
-  draw2();
-}
-void PatternPulse::draw2() {
-  color = CHSV(hue, 255, brightness);
+void PatternPulse::draw() {
   for (size_t i = 0; i < numLeds; i++) {
     /* code */
     leds[i] = color;
@@ -59,9 +46,4 @@ void PatternPulse::setBright() {
 }
 void PatternPulse::setHue(int hue_) {
   hue = hue_;
-}
-void PatternPulse::draw() {
-  for (size_t i = 0; i < numLeds; i++) {
-    leds[i] = color;
-  }
 }

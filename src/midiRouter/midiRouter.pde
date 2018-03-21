@@ -72,11 +72,36 @@ void keyPressed() {
   } else if (key == '3' ) {
      noteOn(0,2, 127);
    noteOff(0,2, 127);
-  }
-  
-  if(key == ' ') {
+   
+  } else if(key == '4') {
+     noteOn(0,3, 127);
+   noteOff(0,3, 127);
+  } else if (key == '5' ) {
+     noteOn(0,4, 127);
+   noteOff(0,4, 127);
+  } else if (key == '6' ) {
+     noteOn(0,5, 127);
+   noteOff(0,5, 127);
+   } else if (key == '7' ) {
+     noteOn(0,6, 127);
+   noteOff(0,6, 127);
+   
+   } else if (key == '8' ) {
+     noteOn(0,7, 127);
+   noteOff(0,7, 127);
+   
+   } else if (key == '9' ) {
+     noteOn(0,8, 127);
+   noteOff(0,8, 127);
+   
+  } else if(key == ' ') {
    int note = 4 +(int)random(250);
    noteOn(0,note, 127);
+   //delay(5);
+   noteOff(0,note, 127);
+  } else {
+    int note = key;
+    noteOn(0,note, 127);
    //delay(5);
    noteOff(0,note, 127);
   }
