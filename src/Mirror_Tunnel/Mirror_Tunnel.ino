@@ -4,29 +4,54 @@
 // Set teensy to usbMIDI
 
 // PINS on the octo28_adaptor
-// 2 14 7 8 6 20 21 5
+// 2 14 7 8 --  6 20 21 5
 #define PIN 2
 #define PIN2 7
 #define PIN3 14
 #define PIN4 8
+
+#define PIN5 6
+#define PIN6 20
+#define PIN7 21
+#define PIN8 5
+
+
 // about 55 Leds per Mirro Tunnel Segment
 #define NUM_PIXELS 110
 #define NUM_PIXELS2 110
 #define NUM_PIXELS3 110
 #define NUM_PIXELS4 110
+
+#define NUM_PIXELS5 110
+#define NUM_PIXELS6 110
+#define NUM_PIXELS7 110
+#define NUM_PIXELS8 110
+
 #define SEGMENT_LEN 3
 // Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_RGBW + NEO_KHZ800);
 
 // LED Parts
+
+// Neopixel strips that drive the LED
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_RGBW + NEO_KHZ800);
 Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(NUM_PIXELS2, PIN2, NEO_RGBW + NEO_KHZ800);
 Adafruit_NeoPixel strip3 = Adafruit_NeoPixel(NUM_PIXELS3, PIN3, NEO_RGBW + NEO_KHZ800);
 Adafruit_NeoPixel strip4 = Adafruit_NeoPixel(NUM_PIXELS4, PIN4, NEO_RGBW + NEO_KHZ800);
 
+Adafruit_NeoPixel strip5 = Adafruit_NeoPixel(NUM_PIXELS5, PIN5, NEO_RGBW + NEO_KHZ800);
+Adafruit_NeoPixel strip6 = Adafruit_NeoPixel(NUM_PIXELS6, PIN6, NEO_RGBW + NEO_KHZ800);
+Adafruit_NeoPixel strip7 = Adafruit_NeoPixel(NUM_PIXELS7, PIN7, NEO_RGBW + NEO_KHZ800);
+Adafruit_NeoPixel strip8 = Adafruit_NeoPixel(NUM_PIXELS8, PIN8, NEO_RGBW + NEO_KHZ800);
+
+// Fast led strips used for easier color manipulation
 CRGB fleds[NUM_PIXELS];
 CRGB fleds2[NUM_PIXELS];
 CRGB fleds3[NUM_PIXELS];
 CRGB fleds4[NUM_PIXELS];
+CRGB fleds5[NUM_PIXELS];
+CRGB fleds6[NUM_PIXELS];
+CRGB fleds7[NUM_PIXELS];
+CRGB fleds8[NUM_PIXELS];
 
 uint8_t brightness = 64;
 uint8_t testHue = 0;
@@ -59,16 +84,28 @@ void setup() {
     fleds2[i] = color;
     fleds3[i] = color;
     fleds4[i] = color;
+    fleds5[i] = color;
+    fleds6[i] = color;
+    fleds7[i] = color;
+    fleds8[i] = color;
   }
 
   strip.begin();
   strip2.begin();
   strip3.begin();
   strip4.begin();
+  strip5.begin();
+  strip6.begin();
+  strip7.begin();
+  strip8.begin();
   strip.show(); // Initialize all pixels to 'off'
   strip2.show(); // Initialize all pixels to 'off'
   strip3.show(); // Initialize all pixels to 'off'
   strip4.show(); // Initialize all pixels to 'off'
+  strip5.show(); // Initialize all pixels to 'off'
+  strip6.show(); // Initialize all pixels to 'off'
+  strip7.show(); // Initialize all pixels to 'off'
+  strip8.show(); // Initialize all pixels to 'off'
   pinMode(13,OUTPUT);
   // testTest();
 }
@@ -85,9 +122,14 @@ void loop() {
       fleds2[i] = CHSV(hue,255,brightness);
       fleds3[i] = CHSV(hue,255,brightness);
       fleds4[i] = CHSV(hue,255,brightness);
+      fleds5[i] = CHSV(hue,255,brightness);
+      fleds6[i] = CHSV(hue,255,brightness);
+      fleds7[i] = CHSV(hue,255,brightness);
+      fleds8[i] = CHSV(hue,255,brightness);
     }
   } else if (state == 1) {
     // pulse
+    // Strips Flash to incoming midi notes
     patternPulse.update();
     patternPulse2.update();
     patternPulse3.update();
@@ -117,11 +159,19 @@ void putOnStrips() {
     strip2.setPixelColor(i, strip2.Color(fleds2[i].g,fleds2[i].r,fleds2[i].b));
     strip3.setPixelColor(i, strip3.Color(fleds3[i].g,fleds3[i].r,fleds3[i].b));
     strip4.setPixelColor(i, strip4.Color(fleds4[i].g,fleds4[i].r,fleds4[i].b));
+    strip5.setPixelColor(i, strip5.Color(fleds5[i].g,fleds5[i].r,fleds5[i].b));
+    strip6.setPixelColor(i, strip6.Color(fleds6[i].g,fleds6[i].r,fleds6[i].b));
+    strip7.setPixelColor(i, strip7.Color(fleds7[i].g,fleds7[i].r,fleds7[i].b));
+    strip8.setPixelColor(i, strip8.Color(fleds8[i].g,fleds8[i].r,fleds8[i].b));
   }
   strip.show();
   strip2.show();
   strip3.show();
   strip4.show();
+  strip5.show();
+  strip6.show();
+  strip7.show();
+  strip8.show();
 }
 
 void OnControlChange(byte c, byte n, byte v) {

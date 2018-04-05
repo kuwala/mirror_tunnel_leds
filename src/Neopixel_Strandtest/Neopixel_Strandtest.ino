@@ -5,6 +5,7 @@
 
 // PINS on the
 // 2 14 7 8 6 20 21 5
+// pin 2 is default test pin
 #define PIN 2
 #define NUM_PIXELS 16
 // Parameter 1 = number of pixels in strip

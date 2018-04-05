@@ -6,7 +6,7 @@ int noteLength = 200;
 int delayBetweenNotes = 100;
 int xx = 0;
 int yy = 0;
-
+color bgColor = color(0,0,0,100); // r g b a ??? wtf 
 void setup() {
   MidiBus.list();
   // Patch midi in from op-1 
@@ -18,7 +18,8 @@ void setup() {
   
 }
 void draw() {
-  background(0,0,0,0.01);
+  //background(0,0,0,0.01);
+  rect(0,0,width,height,bgColor);
   fill(random(255));
   rect(xx*10,yy*10,10,10); 
   //randomMidi();
@@ -92,7 +93,7 @@ void keyPressed() {
    
    } else if (key == '9' ) {
      noteOn(0,8, 127);
-   noteOff(0,8, 127);
+   noteOff(0,81, 127);
    
   } else if(key == ' ') {
    int note = 4 +(int)random(250);
