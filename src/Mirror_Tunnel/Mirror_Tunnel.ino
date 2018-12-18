@@ -33,7 +33,7 @@
 // LED Parts
 
 // Neopixel strips that drive the LED
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_RGBW + NEO_KHZ800);
+Adafruit_NeoPixel strip  = Adafruit_NeoPixel(NUM_PIXELS,  PIN,  NEO_RGBW + NEO_KHZ800);
 Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(NUM_PIXELS2, PIN2, NEO_RGBW + NEO_KHZ800);
 Adafruit_NeoPixel strip3 = Adafruit_NeoPixel(NUM_PIXELS3, PIN3, NEO_RGBW + NEO_KHZ800);
 Adafruit_NeoPixel strip4 = Adafruit_NeoPixel(NUM_PIXELS4, PIN4, NEO_RGBW + NEO_KHZ800);
@@ -57,7 +57,7 @@ uint8_t brightness = 64;
 uint8_t testHue = 0;
 uint32_t hueDrift = 0;
 
-PatternPulse patternPulse = PatternPulse(fleds, NUM_PIXELS);
+PatternPulse patternPulse  = PatternPulse(fleds,  NUM_PIXELS);
 PatternPulse patternPulse2 = PatternPulse(fleds2, NUM_PIXELS);
 PatternPulse patternPulse3 = PatternPulse(fleds3, NUM_PIXELS);
 PatternPulse patternPulse4 = PatternPulse(fleds4, NUM_PIXELS);
