@@ -8,12 +8,17 @@
 #define PIN2 7
 
 #define PIN3 14
-#define PIN4 5 //8
+#define PIN4 5
 
-#define PIN5 21 //6
+#define PIN5 21
 #define PIN6 20
-#define PIN7 6 //21
-#define PIN8 8 //5
+#define PIN7 6
+#define PIN8 8
+
+// Pins for the pots
+#define POT1 19
+#define POT2 22
+#define POT3 23
 
 // Eight Strips one on each edge inside the tunnel
 // All Strips the same size
@@ -22,6 +27,7 @@
 // about 55 Leds per Mirro Tunnel Segment
 // 2 segment tunnel setup
 #define NUM_PIXELS 110
+#define NUM_SHAPE_PIXELS 8
 
 // Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_RGBW + NEO_KHZ800);
 
@@ -49,17 +55,28 @@ Adafruit_NeoPixel strip8 = Adafruit_NeoPixel(NUM_PIXELS, PIN8, NEO_RGBW + NEO_KH
 // CRGB fleds8[NUM_PIXELS];
 
 CRGB fleds[NUM_STRIPS][NUM_PIXELS];
+CRGB shape[NUM_SHAPE_PIXELS];
 
 uint8_t brightness = 255;
 uint8_t hue = 0;
+uint8_t dimFactor = 0;
 
 // Timer for changing patterns :()
 unsigned long timer = 0;
-int timeStep = 200; // 2secs
+int timeStep = 100; // 2secs
+int minTimeStep = 1;
+int maxTimeStep = 100;
+int saturationMin = 0;
+int saturationMax = 255;
+int saturation = 255;
 int playhead = 0;
 float angle = 0;
 float rate = 0.005;
-// float speed = 200;
+int shapePosition = 0;
+
+int mode = 0;
+// hue rainbow mode
+int hueDrift = 0;
 
 void setup() {
 
@@ -89,29 +106,83 @@ void setup() {
   strip8.show(); // Initialize all pixels to 'off'
   pinMode(13,OUTPUT);
   // testTest();
+  // Potentiometer Setup
+  pinMode(POT1, INPUT);
+  pinMode(POT2, INPUT);
+  pinMode(POT3, INPUT);
 }
 
 void loop() {
-  angle += rate;
-  hue = (hue+20) %256;
-  for(int i = 0; i < NUM_STRIPS; i++ ) {
-    fadeStripBy(i,60 +(angle)*100);
+  // Get input from Control Panel
+  int pot1 = analogRead(POT1);
+  int pot2 = analogRead(POT2);
+  int pot3 = analogRead(POT3);
+  Serial.print("Pots: ");
+  Serial.print(pot1);
+  Serial.print(" ");
+  Serial.print(pot2);
+  Serial.print(" ");
+  Serial.print(pot3);
+  Serial.println(" ");
+
+  // Map Pots to parameter values
+  timeStep = map(pot1, 7, 1023, minTimeStep, maxTimeStep);
+  saturation = map(pot2, 0, 1023, saturationMax, saturationMin);
+  shapePosition = map(pot3, 0, 1023, 0, NUM_PIXELS);
+
+  if(pot1 <= 6) {
+    mode = 0; // calm mode.
+    brightness = map(pot3, 0, 1023, 1, 255);
+  } else {
+    mode = 1;
+    brightness = 255;
+    dimFactor = map(pot3,0,1023, 250,0);
   }
- 
-  if(millis() - timer > timeStep) {
-    timeStep = abs(sin(angle)*35);
-    int j = playhead;
-      //int h = (int)random(255);
-      for(size_t i = 0; i < NUM_PIXELS; i ++) {
-        fleds[j][i] = CHSV(hue,255,brightness);
+
+  if(mode == 0) {
+    // Hue Rainbow;
+    hueDrift += 1;
+    int hue = hueDrift;
+    for (size_t i = 0; i < NUM_PIXELS; i++) {
+      hue = (hue + 1 ) % 256;
+      // rainbow and marquee
+      
+      for(size_t j = 0; j < NUM_STRIPS; j ++ ) {
+        fleds[j][i] = CHSV(hue,saturation,brightness);
+
       }
+      
+    }
+  } else if (mode == 1) {
+    // Spinning wheel
+    angle += rate;
+    hue = (hue+20) %256;
+    for(int i = 0; i < NUM_STRIPS; i++ ) {
 
-    playhead = (playhead+1) % 8;
-    timer = millis();
-    Serial.print(j);
-    Serial.println(" drawing strip");
+      //int fade = dimFactor 
+      fadeStripBy(i,dimFactor);
+      // fadeStripBy(i,60 +(angle)*100);
+    }
+   
+    if(millis() - timer > timeStep) {
+      //timeStep = abs(sin(angle)*35);
 
+      int j = playhead;
+        //int h = (int)random(255);
+        for(size_t i = 0; i < NUM_PIXELS; i ++) {
+          fleds[j][i] = CHSV(hue,saturation,brightness);
+        }
+        // drawShape(j,shapePosition);
+
+      playhead = (playhead+1) % 8;
+      timer = millis();
+      // Serial.print(j);
+      // Serial.println(" drawing strip");
+
+    }
   }
+
+  
 
   usbMIDI.read();
   putOnStrips();
@@ -121,7 +192,22 @@ void loop() {
 // * * * * * * * * * * * * * * * * *
 // * * * * Strip Functions * * * * *
 // * * * * * * * * * * * * * * * * *
+void drawShape(int strip, int position) {
+  for (int i = 0; i < NUM_SHAPE_PIXELS; ++i)
+  {
+    /* code */
+    shape[i] = CHSV(hue,saturation,brightness);
+  }
 
+  position = position % NUM_PIXELS; // wrap around position
+  int length = 8;
+  for (int i = 0; i < length; ++i)
+  {
+    if(position < NUM_PIXELS && position >= 0) {
+      fleds[strip][position+i] = shape[i];
+    }
+  }
+}
 void putOnStrips() {
   // Puts the FastLED leds onto the NeoPixel Leds
   
